@@ -1,7 +1,8 @@
 const productsArr = [
 
     {
-        id: 'p1',
+        
+    id: 'p1',
     
     title: 'Colors',
     

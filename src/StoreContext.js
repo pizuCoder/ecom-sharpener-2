@@ -1,14 +1,17 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+
+const crudLink = 'https://crudcrud.com/api/62280d54ef3a4b79886c820e41aa3fbe/cartItems'
+
 
 const StoreContext = React.createContext({
   token: "",
   isLoggedIn: false,
   login: (token) => {},
   logout: () => {},
-})
+});
 
-function StoreContextProvider (props) {
-  
+function StoreContextProvider(props) {
   // const initialToken = localStorage.getItem("token");
   // const [token, setToken] = useState(initialToken);
   // const userIsLoggedIn = !!token;
@@ -20,21 +23,17 @@ function StoreContextProvider (props) {
     setToken(initialToken);
     setUserIsLoggedIn(!!initialToken);
   }, []);
-  
 
   const loginHandler = (token) => {
     setToken(token);
     localStorage.setItem("token", token);
     setUserIsLoggedIn(true);
   };
-  
 
   const logoutHandler = () => {
     setToken(null);
     localStorage.removeItem("token");
     setUserIsLoggedIn(false);
-    
-    
   };
 
   useEffect(() => {
@@ -50,7 +49,7 @@ function StoreContextProvider (props) {
 
         if (minutesInactive >= 5) {
           logoutHandler();
-           // Redirect to the logout page
+          // Redirect to the logout page
         }
       };
 
@@ -67,26 +66,66 @@ function StoreContextProvider (props) {
     logout: logoutHandler,
   };
 
-    const [storeItems, setStoreItems] = useState([])
-    function addToCart(newItem){
-        const existingItem = storeItems.find((item) => item.id === newItem.id);
-    if (existingItem) {
-      // if the item already exists, update its quantity
-      const updatedItems = storeItems.map((item) =>
-        item.id === existingItem.id ? { ...item, quantity: item.quantity + 1 } : item
-      );
-      setStoreItems(updatedItems);
-    } else {
-      // if the item doesn't exist, add it to the cart with quantity 1
-      setStoreItems((prevItems) => [...prevItems, { ...newItem, quantity: 1 }]);
-    }
-    }
-    return(
-        <StoreContext.Provider value={{storeItems, addToCart, contextValue}}>
-            {props.children}
-        </StoreContext.Provider>
-    )
+  const [storeItems, setStoreItems] = useState([]);
+
+function addToCart(newItem) {
+  const existingItem = storeItems.find((item) => item.id === newItem.id);
+  if (existingItem) {
+    // if the item already exists, update its quantity
+    const updatedItems = storeItems.map((item) =>
+      item.id === existingItem.id
+        ? { ...item, quantity: item.quantity + 1 }
+        : item
+    );
+    setStoreItems(updatedItems);
+    
+
+  } else {
+    // if the item doesn't exist, add it to the cart with quantity 1
+    setStoreItems((prevItems) => [...prevItems, { ...newItem, quantity: 1}]);
+
+  }
+  
 }
 
+function clearItem(itemId) {
+  const itemIndex = storeItems.findIndex((item) => item.id === itemId);
+  if (itemIndex !== -1) {
+    // remove the item from the cart
+    const updatedItems = [...storeItems];
+    updatedItems.splice(itemIndex, 1);
+    setStoreItems(updatedItems);
+  }
+  
+}
+function saveCartItems(cartItems) {
+  axios.post(crudLink, { cartItems })
+    .then(response => {
+      console.log(response.data);
+    })
+    .catch(error => {
+      console.error(error);
+    });
+}
+useEffect(() => {
+  saveCartItems(storeItems);
+}, [storeItems]);
 
-export {StoreContextProvider, StoreContext}
+useEffect(() => {
+  if (!userIsLoggedIn) {
+    saveCartItems([]);
+  }
+}, [userIsLoggedIn]);
+
+
+
+  return (
+    <StoreContext.Provider
+      value={{ storeItems, addToCart, clearItem, contextValue }}
+    >
+      {props.children}
+    </StoreContext.Provider>
+  );
+}
+
+export { StoreContextProvider, StoreContext };
