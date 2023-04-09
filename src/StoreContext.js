@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+// import axios from "axios";
 
-const crudLink = 'https://crudcrud.com/api/62280d54ef3a4b79886c820e41aa3fbe/cartItems'
+// const crudLink = 'https://crudcrud.com/api/7d0208a938e944d9a4074883876d2059/cartItems'
 
 
 const StoreContext = React.createContext({
@@ -68,56 +68,96 @@ function StoreContextProvider(props) {
 
   const [storeItems, setStoreItems] = useState([]);
 
-function addToCart(newItem) {
-  const existingItem = storeItems.find((item) => item.id === newItem.id);
-  if (existingItem) {
-    // if the item already exists, update its quantity
-    const updatedItems = storeItems.map((item) =>
-      item.id === existingItem.id
-        ? { ...item, quantity: item.quantity + 1 }
-        : item
-    );
-    setStoreItems(updatedItems);
-    
+  //localStorage implementation:
 
-  } else {
-    // if the item doesn't exist, add it to the cart with quantity 1
-    setStoreItems((prevItems) => [...prevItems, { ...newItem, quantity: 1}]);
-
+  function addToCart(item) {
+    const existingCartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+    const existingCartItem = existingCartItems.find(cartItem => cartItem.id === item.id);
+  
+    if (existingCartItem) {
+      existingCartItem.quantity += 1;
+    } else {
+      existingCartItems.push({...item, quantity: 1});
+    }
+  
+    localStorage.setItem("cartItems", JSON.stringify(existingCartItems));
+    setStoreItems(existingCartItems);
+    window.location.reload(false)
   }
   
-}
 
-function clearItem(itemId) {
-  const itemIndex = storeItems.findIndex((item) => item.id === itemId);
-  if (itemIndex !== -1) {
-    // remove the item from the cart
-    const updatedItems = [...storeItems];
-    updatedItems.splice(itemIndex, 1);
-    setStoreItems(updatedItems);
+  function clearItem(itemId) {
+    const existingCartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
+    const itemIndex = existingCartItems.findIndex((item) => item.id === itemId);
+    if (itemIndex !== -1) {
+      // remove the item from the cart
+      const updatedItems = [...existingCartItems];
+      updatedItems.splice(itemIndex, 1);
+      setStoreItems(updatedItems);
+  
+      // update the item in localStorage
+      localStorage.setItem("cartItems", JSON.stringify(updatedItems));
+      window.location.reload(false)
+    }
   }
   
-}
-function saveCartItems(cartItems) {
-  axios.post(crudLink, { cartItems })
-    .then(response => {
-      console.log(response.data);
-    })
-    .catch(error => {
-      console.error(error);
-    });
-}
+  
 useEffect(() => {
-  saveCartItems(storeItems);
-}, [storeItems]);
-
-useEffect(() => {
-  if (!userIsLoggedIn) {
-    saveCartItems([]);
+  const storedItems = localStorage.getItem("storeItems");
+  if (storedItems) {
+    setStoreItems(JSON.parse(storedItems));
   }
-}, [userIsLoggedIn]);
+}, []);
 
+// function addToCart(item) {
+//   const existingCartItems = [...storeItems];
+//   const existingCartItem = existingCartItems.find(cartItem => cartItem.id === item.id);
 
+//   if (existingCartItem) {
+//     existingCartItem.quantity += 1;
+//   } else {
+//     existingCartItems.push({...item, quantity: 1});
+//   }
+
+//   setStoreItems(existingCartItems);
+//   axios.post(crudLink, existingCartItems)
+//     .then(response => {
+//       console.log(response);
+//     })
+//     .catch(error => {
+//       console.log(error);
+//     });
+// }
+
+// function clearItem(itemId) {
+//   const existingCartItems = [...storeItems];
+//   const itemIndex = existingCartItems.findIndex((item) => item.id === itemId);
+//   if (itemIndex !== -1) {
+//     // remove the item from the cart
+//     const updatedItems = [...existingCartItems];
+//     updatedItems.splice(itemIndex, 1);
+//     setStoreItems(updatedItems);
+
+//     // update the item in the server
+//     axios.delete(`${crudLink}/${itemId}`)
+//       .then(response => {
+//         console.log(response);
+//       })
+//       .catch(error => {
+//         console.log(error);
+//       });
+//   }
+// }
+
+// useEffect(() => {
+//   axios.get(crudLink)
+//     .then(response => {
+//       setStoreItems(response.data);
+//     })
+//     .catch(error => {
+//       console.log(error);
+//     });
+// }, []);
 
   return (
     <StoreContext.Provider
