@@ -6,14 +6,17 @@ import Container from "react-bootstrap/Container";
 import Navbar from "react-bootstrap/Navbar";
 import { useContext } from "react";
 import { StoreContext } from "../StoreContext";
+import { useNavigate } from "react-router-dom";
 
 const NavBar = () => {
+  const navigate = useNavigate()
   const authCtx = useContext(StoreContext);
   const { logout } = authCtx.contextValue;
   const { isLoggedIn } = authCtx.contextValue;
-  
+  // console.log(isLoggedIn)
   const logoutHandler = () => {
     logout();
+    navigate('/login')
   };
 
   return (
@@ -46,7 +49,7 @@ const NavBar = () => {
             </a>
           )}
 
-          <Button onClick={logoutHandler}>Logout</Button>
+          {isLoggedIn && <Button onClick={logoutHandler}>Logout</Button>}
         </Container>
       </Navbar>
     </>

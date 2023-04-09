@@ -14,13 +14,14 @@ import Login from './components/Login/Login'
 function App() {
   
   return(
+<BrowserRouter>
     <div>
       
       <NavBar />
       
       <Header />
       {/* <StorePage /> */}
-      <BrowserRouter>
+      
       <Routes>
           <Route path="/home" element={<HomePage />} />
           <Route path="/store" element={<StorePage />} />
@@ -29,8 +30,9 @@ function App() {
           <Route path="/login" element={<StoreContextProvider><Login /></StoreContextProvider>} />
           <Route path="/store/:productId" element={<ProductPage/>} />
       </Routes>
-    </BrowserRouter>
+    
     </div>
+    </BrowserRouter>
   )
 }
 export default App

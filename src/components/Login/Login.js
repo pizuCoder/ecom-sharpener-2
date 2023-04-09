@@ -66,8 +66,8 @@ const Login = () => {
       .then((data) => {
         console.log(data);
         login(data.idToken);
-        
         navigate('/home')
+        window.location.reload(false)
       })
       .catch((err) => {
         alert(err.message);
